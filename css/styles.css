@@ -1,52 +1,173 @@
 /* css/styles.css */
-body {
-    background-color: #f8f9fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&family=Noto+Serif+JP:wght@400;700&display=swap');
+
+:root {
+    --muji-bg: #f7f7f7;          /* Very light grey/white background */
+    --muji-card: #ffffff;        /* Pure white for cards */
+    --muji-text: #333333;        /* Dark grey text (softer than black) */
+    --muji-accent: #7d6c5b;      /* Muted Walnut/Kraft Paper Brown */
+    --muji-border: #e0e0e0;      /* Subtle borders */
+    --muji-green: #556b2f;       /* Optional: Muted Matcha Green for buttons */
 }
 
+body {
+    background-color: var(--muji-bg);
+    font-family: 'DM Sans', sans-serif; /* Clean, modern sans-serif */
+    color: var(--muji-text);
+    line-height: 1.6;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6, .navbar-brand {
+    font-family: 'Noto Serif JP', serif; /* Elegant serif for headings */
+    color: var(--muji-text);
+    letter-spacing: -0.02em;
+}
+
+/* Navigation - Clean & White */
+.navbar {
+    background-color: var(--muji-card) !important;
+    border-bottom: 1px solid var(--muji-border);
+    box-shadow: none;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--muji-text) !important;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 1.25rem;
+}
+
+.nav-link {
+    color: #666 !important;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-left: 1.5rem;
+}
+
+.nav-link.active {
+    color: var(--muji-accent) !important;
+    border-bottom: 2px solid var(--muji-accent);
+}
+
+/* Header - Minimalist */
+header {
+    background-color: var(--muji-bg);
+    color: var(--muji-text) !important;
+    border-bottom: 1px solid var(--muji-border);
+    padding: 4rem 0;
+}
+
+header h1 {
+    font-weight: 400;
+}
+
+/* Cards - Flat & Clean */
 .card {
-    transition: transform 0.2s;
-    overflow: hidden;
+    background-color: var(--muji-card);
+    border: 1px solid var(--muji-border);
+    border-radius: 4px; /* Slightly rounded, almost square */
+    box-shadow: none; /* No shadow for Muji look */
+    transition: all 0.2s ease;
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    border-color: var(--muji-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* GRAB STYLE BUTTONS */
-.btn-grab {
-    background-color: #00b14f; /* Grab Green */
-    color: white;
+.card-img-top {
+    border-bottom: 1px solid var(--muji-border);
+    opacity: 0.95;
+    transition: opacity 0.2s;
+}
+
+.card:hover .card-img-top {
+    opacity: 1;
+}
+
+.card-title {
     font-size: 1.1rem;
-    border: none;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
 }
 
-.btn-grab:hover {
-    background-color: #009e46;
-    color: white;
+.card-text {
+    font-family: 'DM Sans', sans-serif;
+    color: #666 !important;
+    font-weight: 500;
 }
 
-/* Qty Buttons (Round) */
+/* Buttons - Muted & Functional */
+.btn-warning, .btn-grab, .btn-primary, .btn-success {
+    background-color: var(--muji-accent) !important;
+    border: 1px solid var(--muji-accent) !important;
+    color: white !important;
+    border-radius: 2px; /* Muji square style */
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    box-shadow: none !important;
+    padding: 10px 20px;
+}
+
+.btn-warning:hover, .btn-grab:hover {
+    background-color: #5d4d3e !important; /* Darker brown */
+    border-color: #5d4d3e !important;
+}
+
+/* Quantity Buttons */
 .btn-qty {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid #00b14f;
-    color: #00b14f;
-    background: white;
-    font-weight: bold;
-    font-size: 1.2rem;
-    line-height: 1;
-    padding: 0;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #ccc;
+    background-color: white;
+    color: #333;
+    border-radius: 50%; /* Keep round for usability */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s;
 }
 
 .btn-qty:hover {
-    background-color: #00b14f;
-    color: white;
+    border-color: var(--muji-accent);
+    color: var(--muji-accent);
+    background-color: #fafafa;
 }
 
-table img {
+/* Modal */
+.modal-content {
     border-radius: 4px;
-    max-width: 60px;
+    border: none;
+}
+.modal-header {
+    border-bottom: 1px solid var(--muji-border);
+}
+.form-control {
+    border-radius: 2px;
+    border-color: var(--muji-border);
+    background-color: #fafafa;
+}
+.form-control:focus {
+    box-shadow: none;
+    border-color: var(--muji-accent);
+}
+
+/* Tables */
+.table {
+    background-color: white;
+}
+.table thead th {
+    background-color: #f9f9f9;
+    border-bottom: 2px solid var(--muji-border);
+    color: #555;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
 }
