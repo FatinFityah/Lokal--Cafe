@@ -5,9 +5,7 @@ body {
 }
 
 .card {
-    border: none;
     transition: transform 0.2s;
-    border-radius: 10px;
     overflow: hidden;
 }
 
@@ -16,16 +14,39 @@ body {
     box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
 }
 
-.navbar-brand {
+/* GRAB STYLE BUTTONS */
+.btn-grab {
+    background-color: #00b14f; /* Grab Green */
+    color: white;
+    font-size: 1.1rem;
+    border: none;
+}
+
+.btn-grab:hover {
+    background-color: #009e46;
+    color: white;
+}
+
+/* Qty Buttons (Round) */
+.btn-qty {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #00b14f;
+    color: #00b14f;
+    background: white;
     font-weight: bold;
-    letter-spacing: 1px;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 0;
+}
+
+.btn-qty:hover {
+    background-color: #00b14f;
+    color: white;
 }
 
 table img {
     border-radius: 4px;
     max-width: 60px;
-}
-
-.btn-warning {
-    font-weight: bold;
 }
