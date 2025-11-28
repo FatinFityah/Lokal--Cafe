@@ -23,7 +23,7 @@ const products = [
 
   // DESSERT
   { id: "d1", name: "Strawberry Waffle", price: 6.00, img: "images/straw_waffle.jpg" },
-  { id: "d2", name: "Chocolate Waffle", price: 6.00, img: "images/choc_waffle.jpg" },
+  { id: "d2", name: "Chocolate Waffle", price: 6.00, img: "images/chocolate_waffle.jpg" },
   { id: "d3", name: "Peanut Waffle", price: 6.00, img: "images/peanut_waffle.jpg" },
   
   // SIDES
