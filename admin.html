@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Lokal Cafe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">
+
+    <nav class="navbar navbar-dark bg-black border-bottom border-secondary">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">LOKAL ADMIN PANEL</span>
+            <a href="index.html" class="btn btn-outline-light btn-sm">View Website</a>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <h2 class="mb-4">Incoming Orders</h2>
+        
+        <div class="table-responsive">
+            <table class="table table-dark table-striped table-hover border border-secondary align-middle">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-orders-table">
+                    <tr><td colspan="5" class="text-center">No orders found.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="alert alert-info mt-4">
+            <strong>Important Presentation Note:</strong> This Admin Panel reads from <strong>Browser Local Storage</strong>. 
+            To show orders here, you must place the order on this <strong>same computer and same browser</strong>.
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/db.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
