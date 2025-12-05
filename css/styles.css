@@ -420,3 +420,87 @@ footer {
     .filter-btn { margin-bottom: 10px; }
     .unique-subtitle { font-size: 1.5rem; }
 }
+
+/* --- MOBILE RECEIPT VIEW --- */
+/* This only runs on screens smaller than 768px (Phones) */
+@media (max-width: 768px) {
+
+    /* 1. Force the table and rows to behave like blocks (stacking) */
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    /* 2. Hide the top header row (Date, Customer, Total...) because we don't need it */
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    /* 3. Style each "Order" as a nice Card/Receipt */
+    tr {
+        background-color: #fff; /* White background for the card */
+        border: 1px solid #ddd;
+        border-radius: 10px;    /* Rounded corners */
+        margin-bottom: 15px;    /* Space between orders */
+        padding: 15px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow */
+    }
+
+    /* 4. Style the cells inside the card */
+    td {
+        border: none;
+        border-bottom: 1px solid #eee; /* Light line between items */
+        position: relative;
+        padding-left: 0;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        text-align: left; /* Align text to the left */
+    }
+
+    /* 5. Add Labels automatically using CSS (So users know what is what) */
+    
+    /* Date/Time */
+    td:nth-of-type(1):before { 
+        content: "📅 Date: "; 
+        font-weight: bold; 
+        color: #555;
+    }
+    
+    /* Customer Name */
+    td:nth-of-type(2):before { 
+        content: "👤 Customer: "; 
+        font-weight: bold; 
+        color: #555;
+    }
+
+    /* Items (Remove the border for this big list) */
+    td:nth-of-type(3) {
+        background-color: #f9f9f9; /* Light grey box for items */
+        margin: 10px 0;
+        border-radius: 5px;
+        padding: 10px;
+    }
+    td:nth-of-type(3):before {
+        content: "🛒 Items Ordered:";
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #d32f2f; /* Red color to match your theme */
+    }
+
+    /* Total Price */
+    td:nth-of-type(4) {
+        font-size: 1.2em;
+        font-weight: bold;
+        text-align: right; /* Put price on the right */
+        border-bottom: none;
+    }
+    
+    /* Action Button (Center it) */
+    td:nth-of-type(5) {
+        border: none;
+        text-align: center;
+        padding-top: 0;
+    }
+}
