@@ -1,238 +1,347 @@
 // js/app.js
 
-// 1. Initialize Cart
+// --- STATE ---
 let cart = JSON.parse(localStorage.getItem('lokalCart')) || [];
-let currentProduct = null; // To track which product is in the modal
 
-// 2. DOM Elements
-const productContainer = document.getElementById('product-list');
-const cartContainer = document.getElementById('cart-items');
-const checkoutList = document.getElementById('checkout-cart-list');
-const checkoutTotal = document.getElementById('checkout-total');
-const checkoutForm = document.getElementById('checkout-form');
-const adminTable = document.getElementById('admin-orders-table');
+// --- DOM ELEMENTS ---
+const menuContainer = document.getElementById('menu-grid');
+const cartCountBadge = document.getElementById('cart-count');
 
-// --- DISPLAY PRODUCTS (Index Page) ---
-function displayProducts() {
-    if (!productContainer) return;
-    productContainer.innerHTML = '';
+// --- INIT ---
+window.onload = () => {
+    // Determine which page we are on
+    if (document.getElementById('menu-grid')) {
+        renderMenu('all');
+        setupFilters();
+    }
+    if (document.getElementById('cart-items-container')) {
+        renderCartPage();
+    }
+    if (document.getElementById('checkout-summary')) {
+        renderCheckout();
+    }
     
-    products.forEach(product => {
-        const imgPath = product.img || 'https://via.placeholder.com/300?text=No+Image';
-        
-        productContainer.innerHTML += `
-            <div class="col-md-4 col-sm-6 mb-4">
-                <div class="card h-100 shadow-sm border-0" onclick="openModal('${product.id}')" style="cursor: pointer;">
-                    <img src="${imgPath}" class="card-img-top" style="height:200px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/300?text=Image+Missing'">
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold">${product.name}</h5>
-                        <p class="card-text text-muted">RM ${product.price.toFixed(2)}</p>
+    // Check if we are on Admin Page
+    if (document.getElementById('admin-orders-pending')) {
+        loadAdminOrders();
+    }
+    
+    updateCartBadge();
+};
+
+// --- 1. RENDER MENU ---
+function renderMenu(category) {
+    if (!menuContainer) return;
+    menuContainer.innerHTML = '';
+
+    const filtered = category === 'all' 
+        ? products 
+        : products.filter(p => p.category === category);
+
+    filtered.forEach(p => {
+        menuContainer.innerHTML += `
+            <div class="col-lg-4 col-md-6 mb-4 fade-in">
+                <div class="product-card">
+                    <div class="img-wrapper">
+                        <img src="${p.img}" class="product-img" onerror="this.src='https://placehold.co/600x400/eee/31343C?text=No+Image'">
                     </div>
+                    
+                    <div class="d-flex justify-content-between align-items-start mt-3">
+                        <h5 class="product-title">${p.name}</h5>
+                        <span class="price-tag">RM ${p.price.toFixed(2)}</span>
+                    </div>
+                    <p class="product-desc">${p.desc}</p>
+                    
+                    <div class="qty-control">
+                        <button class="btn-qty-mini" onclick="updateCardQty('${p.id}', -1)">-</button>
+                        <span id="qty-${p.id}">1</span>
+                        <button class="btn-qty-mini" onclick="updateCardQty('${p.id}', 1)">+</button>
+                    </div>
+
+                    <button class="btn-add-cart" onclick="addToCart('${p.id}')">
+                        <i class="bi bi-cart-plus-fill me-2"></i> Add to Cart
+                    </button>
                 </div>
             </div>
         `;
     });
 }
 
-// --- MODAL FUNCTIONS (Like Grab) ---
-function openModal(id) {
-    currentProduct = products.find(p => p.id === id);
-    if (!currentProduct) return;
-
-    // Reset Modal UI
-    document.getElementById('modal-img').src = currentProduct.img;
-    document.getElementById('modal-title').innerText = currentProduct.name;
-    document.getElementById('modal-price').innerText = currentProduct.price.toFixed(2);
-    document.getElementById('modal-note').value = '';
-    document.getElementById('modal-qty').innerText = '1';
-    
-    updateModalButton(1);
-
-    // Show Bootstrap Modal
-    const myModal = new bootstrap.Modal(document.getElementById('productModal'));
-    myModal.show();
+// --- 2. FILTER LOGIC ---
+function setupFilters() {
+    const buttons = document.querySelectorAll('.filter-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            buttons.forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            const cat = e.target.dataset.filter;
+            renderMenu(cat);
+        });
+    });
 }
 
-function adjustModalQty(change) {
-    const qtySpan = document.getElementById('modal-qty');
-    let currentQty = parseInt(qtySpan.innerText);
-    let newQty = currentQty + change;
-
+// --- 3. CART LOGIC ---
+function updateCardQty(id, change) {
+    const qtySpan = document.getElementById(`qty-${id}`);
+    let current = parseInt(qtySpan.innerText);
+    let newQty = current + change;
     if (newQty < 1) newQty = 1;
-
     qtySpan.innerText = newQty;
-    updateModalButton(newQty);
 }
 
-function updateModalButton(qty) {
-    if (!currentProduct) return;
-    const total = (currentProduct.price * qty).toFixed(2);
-    document.getElementById('modal-btn-price').innerText = `RM ${total}`;
-}
+function addToCart(id) {
+    const qtySpan = document.getElementById(`qty-${id}`);
+    const qty = parseInt(qtySpan.innerText);
+    const product = products.find(p => p.id === id);
 
-function addToCartFromModal() {
-    if (!currentProduct) return;
-
-    const qty = parseInt(document.getElementById('modal-qty').innerText);
-    const note = document.getElementById('modal-note').value;
-
-    // Add to Cart Logic
-    const existing = cart.find(item => item.id === currentProduct.id && item.note === note);
-    
+    const existing = cart.find(item => item.id === id);
     if (existing) {
         existing.qty += qty;
     } else {
-        cart.push({ ...currentProduct, qty: qty, note: note });
+        cart.push({ ...product, qty: qty });
     }
 
     saveCart();
-
-    // Close Modal
-    const modalEl = document.getElementById('productModal');
-    const modal = bootstrap.Modal.getInstance(modalEl);
-    modal.hide();
-
-    alert(`Added ${qty} ${currentProduct.name} to basket!`);
+    alert(`Added ${qty} x ${product.name} to cart.`);
+    qtySpan.innerText = 1; 
 }
 
-// --- STANDARD FUNCTIONS ---
-function removeFromCart(id) {
-    // Note: This removes all items with that ID, ignoring notes for simplicity in this demo
-    cart = cart.filter(item => item.id !== id);
-    saveCart();
-}
-
-function saveCart() {
-    localStorage.setItem('lokalCart', JSON.stringify(cart));
-    if (cartContainer) renderCartPage();
-    if (checkoutList) renderCheckout();
-}
-
-// --- RENDER CART PAGE ---
+// --- 4. CART PAGE LOGIC ---
 function renderCartPage() {
-    if (!cartContainer) return;
-    cartContainer.innerHTML = '';
+    const container = document.getElementById('cart-items-container');
+    const totalEl = document.getElementById('cart-page-total');
+    if (!container) return;
+
+    container.innerHTML = '';
     let total = 0;
-    
-    if(cart.length === 0) {
-        cartContainer.innerHTML = '<tr><td colspan="6" class="text-center">Basket is empty</td></tr>';
-        document.getElementById('cart-total').innerText = '0.00';
+
+    if (cart.length === 0) {
+        container.innerHTML = '<div class="text-center py-5"><h3>Your cart is empty</h3><a href="index.html" class="btn btn-dark mt-3">Back to Menu</a></div>';
+        if(totalEl) totalEl.innerText = '0.00';
         return;
     }
 
     cart.forEach(item => {
-        total += item.price * item.qty;
-        const noteHtml = item.note ? `<br><small class="text-muted fst-italic">Note: ${item.note}</small>` : '';
-        
-        cartContainer.innerHTML += `
-            <tr>
-                <td><img src="${item.img}" width="50" style="border-radius:5px;"></td>
-                <td>${item.name} ${noteHtml}</td>
-                <td>RM ${item.price.toFixed(2)}</td>
-                <td>${item.qty}</td>
-                <td>RM ${(item.price * item.qty).toFixed(2)}</td>
-                <td><button class="btn btn-danger btn-sm rounded-circle" onclick="removeFromCart('${item.id}')">x</button></td>
-            </tr>
+        const itemTotal = item.price * item.qty;
+        total += itemTotal;
+        container.innerHTML += `
+            <div class="row align-items-center border-bottom py-3">
+                <div class="col-md-2 col-4">
+                    <img src="${item.img}" class="img-fluid rounded" onerror="this.src='https://placehold.co/100'">
+                </div>
+                <div class="col-md-4 col-8">
+                    <h5 class="fw-bold mb-1">${item.name}</h5>
+                    <div class="text-muted">RM ${item.price.toFixed(2)}</div>
+                </div>
+                <div class="col-md-3 col-6 mt-3 mt-md-0 d-flex align-items-center">
+                    <button class="btn btn-sm btn-outline-dark rounded-circle" onclick="updateCartItemQty('${item.id}', -1)">-</button>
+                    <span class="mx-3 fw-bold">${item.qty}</span>
+                    <button class="btn btn-sm btn-outline-dark rounded-circle" onclick="updateCartItemQty('${item.id}', 1)">+</button>
+                </div>
+                <div class="col-md-2 col-6 mt-3 mt-md-0 text-end">
+                    <span class="fw-bold">RM ${itemTotal.toFixed(2)}</span>
+                </div>
+                <div class="col-md-1 text-end">
+                    <button class="btn text-danger" onclick="removeCartItem('${item.id}')">&times;</button>
+                </div>
+            </div>
         `;
     });
-    document.getElementById('cart-total').innerText = total.toFixed(2);
+
+    if(totalEl) totalEl.innerText = total.toFixed(2);
 }
 
-// --- RENDER CHECKOUT ---
-function renderCheckout() {
-    if (!checkoutList) return;
-    checkoutList.innerHTML = '';
-    let total = 0;
-    let qty = 0;
+function updateCartItemQty(id, change) {
+    const item = cart.find(i => i.id === id);
+    if (item) {
+        item.qty += change;
+        if (item.qty < 1) item.qty = 1;
+        saveCart();
+        renderCartPage();
+    }
+}
 
+function removeCartItem(id) {
+    cart = cart.filter(i => i.id !== id);
+    saveCart();
+    renderCartPage();
+}
+
+function saveCart() {
+    localStorage.setItem('lokalCart', JSON.stringify(cart));
+    updateCartBadge();
+}
+
+function updateCartBadge() {
+    if (cartCountBadge) {
+        const count = cart.reduce((acc, item) => acc + item.qty, 0);
+        cartCountBadge.innerText = count;
+        cartCountBadge.style.display = count > 0 ? 'inline-block' : 'none';
+    }
+}
+
+// --- 5. CHECKOUT ---
+function renderCheckout() {
+    const list = document.getElementById('checkout-summary');
+    const totalEl = document.getElementById('checkout-total-price');
+    let total = 0;
+    list.innerHTML = '';
+    
     cart.forEach(item => {
         total += item.price * item.qty;
-        qty += item.qty;
-        const noteHtml = item.note ? `<div class="text-muted small">Note: ${item.note}</div>` : '';
-
-        checkoutList.innerHTML += `
+        list.innerHTML += `
             <li class="list-group-item d-flex justify-content-between lh-sm">
                 <div>
                     <h6 class="my-0">${item.name}</h6>
-                    ${noteHtml}
                     <small class="text-muted">Qty: ${item.qty}</small>
                 </div>
                 <span class="text-muted">RM ${(item.price * item.qty).toFixed(2)}</span>
             </li>
         `;
     });
-    
-    if(document.getElementById('cart-count')) document.getElementById('cart-count').innerText = qty;
-    if(checkoutTotal) checkoutTotal.innerText = 'RM ' + total.toFixed(2);
+    totalEl.innerText = 'RM ' + total.toFixed(2);
 }
 
-// --- CHECKOUT SUBMIT ---
+const checkoutForm = document.getElementById('checkout-form');
 if (checkoutForm) {
-    checkoutForm.addEventListener('submit', function(e) {
+    checkoutForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const btn = document.querySelector('button[type="submit"]');
-        btn.innerText = "Processing...";
-        btn.disabled = true;
-
-        const newOrder = {
+        
+        const order = {
             id: Date.now(),
             date: new Date().toLocaleString(),
             name: document.getElementById('name').value,
-            email: document.getElementById('email').value,
+            total: document.getElementById('checkout-total-price').innerText,
             items: cart,
-            total: checkoutTotal.innerText,
-            status: "New"
+            status: 'Pending'
         };
 
-        let allOrders = JSON.parse(localStorage.getItem('lokalOrders')) || [];
-        allOrders.push(newOrder);
-        localStorage.setItem('lokalOrders', JSON.stringify(allOrders));
-
-        setTimeout(() => {
-            localStorage.removeItem('lokalCart');
-            window.location.href = 'confirmation.html';
-        }, 1500);
+        const orders = JSON.parse(localStorage.getItem('lokalOrders')) || [];
+        orders.push(order);
+        localStorage.setItem('lokalOrders', JSON.stringify(orders));
+        
+        cart = [];
+        saveCart();
+        window.location.href = 'confirmation.html';
     });
 }
 
-// --- ADMIN PANEL ---
+// --- 6. ADMIN PANEL ---
 function loadAdminOrders() {
-    if (!adminTable) return;
-    const allOrders = JSON.parse(localStorage.getItem('lokalOrders')) || [];
-    adminTable.innerHTML = '';
+    const pendingBody = document.getElementById('admin-orders-pending');
+    const historyBody = document.getElementById('admin-orders-history');
+    
+    if (!pendingBody || !historyBody) return;
 
-    if (allOrders.length === 0) {
-        adminTable.innerHTML = '<tr><td colspan="6" class="text-center">No orders found.</td></tr>';
+    const orders = JSON.parse(localStorage.getItem('lokalOrders')) || [];
+
+    pendingBody.innerHTML = '';
+    historyBody.innerHTML = '';
+
+    if (orders.length === 0) {
+        pendingBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No active orders.</td></tr>';
+        historyBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No history yet.</td></tr>';
         return;
     }
 
-    allOrders.reverse().forEach(order => {
-        const itemsString = order.items.map(i => `${i.name} (x${i.qty}) ${i.note ? '['+i.note+']' : ''}`).join(', ');
-        const firstItem = order.items[0];
-        const imagePath = firstItem ? firstItem.img : '';
-
-        adminTable.innerHTML += `
-            <tr>
-                <td>${order.date}</td>
-                <td>${order.name}<br><small>${order.email}</small></td>
-                <td><img src="${imagePath}" width="50" style="border-radius:4px;"></td>
-                <td>${itemsString}</td>
-                <td>${order.total}</td>
-                <td><span class="badge bg-success">${order.status}</span></td>
-            </tr>
-        `;
+    orders.reverse().forEach(o => {
+        const itemsStr = o.items.map(i => `<div class="small">• ${i.name} (x${i.qty})</div>`).join('');
+        
+        if (o.status === 'Pending') {
+            pendingBody.innerHTML += `
+                <tr class="table-warning">
+                    <td><strong>${o.date}</strong></td>
+                    <td>${o.name}</td>
+                    <td>${itemsStr}</td>
+                    <td class="fw-bold">${o.total}</td>
+                    <td>
+                        <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm" onclick="markOrderDone(${o.id})">
+                            ✔ Done
+                        </button>
+                    </td>
+                </tr>
+            `;
+        } else {
+            historyBody.innerHTML += `
+                <tr class="opacity-75">
+                    <td>${o.date}</td>
+                    <td>${o.name}</td>
+                    <td>${itemsStr}</td>
+                    <td>${o.total}</td>
+                    <td><span class="badge bg-secondary">Completed</span></td>
+                </tr>
+            `;
+        }
     });
 }
 
-// GLOBAL
-window.openModal = openModal;
-window.adjustModalQty = adjustModalQty;
-window.addToCartFromModal = addToCartFromModal;
-window.removeFromCart = removeFromCart;
-
-window.onload = () => {
-    displayProducts();
-    renderCartPage();
-    renderCheckout();
-    loadAdminOrders();
+window.markOrderDone = function(orderId) {
+    const orders = JSON.parse(localStorage.getItem('lokalOrders')) || [];
+    const orderIndex = orders.findIndex(o => o.id === orderId);
+    if (orderIndex !== -1) {
+        orders[orderIndex].status = 'Completed';
+        localStorage.setItem('lokalOrders', JSON.stringify(orders));
+        loadAdminOrders();
+    }
 };
+
+window.resetSystem = function() {
+    if(confirm("Are you sure you want to delete ALL orders?")) {
+        localStorage.removeItem('lokalOrders');
+        location.reload();
+    }
+};
+
+// --- 7. LOGIN MODAL LOGIC ---
+let currentLoginMode = 'customer'; 
+
+function toggleLoginModal() {
+    const overlay = document.getElementById('login-overlay');
+    if(overlay) overlay.classList.toggle('d-none');
+}
+
+function switchLogin(mode) {
+    currentLoginMode = mode;
+    const btnCust = document.getElementById('btn-customer');
+    const btnAdmin = document.getElementById('btn-admin');
+    const inputUser = document.getElementById('login-user');
+
+    if (mode === 'customer') {
+        btnCust.classList.add('active');
+        btnAdmin.classList.remove('active');
+        inputUser.placeholder = "you@example.com";
+    } else {
+        btnAdmin.classList.add('active');
+        btnCust.classList.remove('active');
+        inputUser.placeholder = "Username (admin)";
+    }
+}
+
+const loginForm = document.getElementById('login-form');
+if (loginForm) {
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        const user = document.getElementById('login-user').value;
+        const pass = document.getElementById('login-pass').value;
+
+        if (currentLoginMode === 'admin') {
+            if (user === 'admin' && pass === 'admin123') {
+                alert('Welcome back, Admin.');
+                window.location.href = 'admin.html'; 
+            } else {
+                alert('Wrong Admin Username or Password!');
+            }
+        } else {
+            alert('Welcome back, Customer!');
+            toggleLoginModal(); 
+        }
+    });
+}
+
+const signinBtn = document.querySelector('.btn-signin');
+if (signinBtn) {
+    signinBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleLoginModal();
+    });
+}
